@@ -84,6 +84,7 @@ func TypeHandler(scrn *Screen, repoURL, camoURL string) http.HandlerFunc {
 		}
 
 		log.Printf("Pressed button: %q", ch)
+		w.Header().Set("Cache-Control", "no-store")
 		http.Redirect(w, r, repoURL, 302)
 	})
 }
