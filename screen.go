@@ -55,7 +55,7 @@ func (s *Screen) Add(ch rune) {
 	}
 }
 
-// Render renders the screen's buffer
+// Render renders the screen's buffer and returns an etag
 func (s *Screen) Render(w io.Writer) (string, error) {
 	s.bufMux.RLock()
 	message := string(s.buf)
@@ -75,9 +75,6 @@ func (s *Screen) Render(w io.Writer) (string, error) {
 	draw.FloydSteinberg.Draw(palettedImage1, frame1.Bounds(), frame1, image.ZP)
 	palettedImage2 := image.NewPaletted(frame2.Bounds(), palette.Plan9)
 	draw.FloydSteinberg.Draw(palettedImage2, frame2.Bounds(), frame2, image.ZP)
-	if err != nil {
-		return "", err
-	}
 
 	gif.EncodeAll(w, &gif.GIF{
 		Image: []*image.Paletted{
