@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"net/http"
 
@@ -54,11 +55,15 @@ var keymap = map[string]rune{
 }
 
 // TypeHandler types a character to the screen
-func TypeHandler(scr *screen.Screen) http.Handler {
+func TypeHandler(scr *screen.Screen, camoURL string) http.Handler {
 	return appHandler(func(w http.ResponseWriter, r *http.Request) *appError {
 		vars := mux.Vars(r)
 		log.Printf("Pressed button: %q", vars["character"])
 		scr.Add(keymap[vars["character"]])
+		err := purgeCache(r.Context(), camoURL)
+		if err != nil {
+			log.Println(err)
+		}
 		http.Redirect(w, r, "https://github.com/veggiedefender/keyboard", 302)
 		return nil
 	})
@@ -79,4 +84,14 @@ func RenderHandler(scr *screen.Screen) http.Handler {
 		w.Write(buf.Bytes())
 		return nil
 	})
+}
+
+func purgeCache(ctx context.Context, url string) error {
+	req, err := http.NewRequestWithContext(ctx, "PURGE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = http.DefaultClient.Do(req)
+	return err
 }

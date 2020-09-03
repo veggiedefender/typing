@@ -1,7 +1,7 @@
 from pathlib import Path
 from PIL import Image
 
-base_url = 'https://remainder-usd-myrtle-verse.trycloudflare.com'
+base_url = 'https://september-briefly-sorted-sheets.trycloudflare.com/'
 image_base_url = f'{base_url}/k'
 link_base_url = f'{base_url}/type'
 
@@ -21,7 +21,7 @@ pressable = [
 ]
 
 image_url_override = {
-    'main': f'{base_url}/text.png'
+    'main': f'{base_url}/screen.png'
 }
 
 images = Path('./images')

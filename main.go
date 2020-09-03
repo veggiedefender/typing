@@ -31,6 +31,7 @@ func main() {
 		imagesPath  = flag.String("static", "./images", "path to images")
 		bgImagePath = flag.String("bg", "./images/main.png", "path to images")
 		fontPath    = flag.String("font", "./Roboto-Regular.ttf", "path to font")
+		camoURL     = flag.String("camoURL", "", "screen image camo URL")
 	)
 	flag.Parse()
 
@@ -42,8 +43,8 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/k/").Handler(http.StripPrefix("/k/", http.FileServer(http.Dir(*imagesPath))))
 
-	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scr))
-	r.Handle("/text.png", RenderHandler(scr))
+	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scr, *camoURL))
+	r.Handle("/screen.png", RenderHandler(scr))
 
 	srv := &http.Server{
 		Handler:      r,

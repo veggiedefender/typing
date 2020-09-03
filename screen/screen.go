@@ -68,7 +68,7 @@ func (s *Screen) Render(w io.Writer) (string, error) {
 	}
 
 	textRightMargin := 60.0
-	textTopMargin := 60.0
+	textTopMargin := 120.0
 	x := textRightMargin
 	y := textTopMargin
 	maxWidth := float64(dc.Width()) - textRightMargin - textRightMargin
