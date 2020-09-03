@@ -1,7 +1,7 @@
 from pathlib import Path
 from PIL import Image
 
-base_url = 'https://september-briefly-sorted-sheets.trycloudflare.com/'
+base_url = 'https://booth-athletes-readings-carried.trycloudflare.com/'
 image_base_url = f'{base_url}/k'
 link_base_url = f'{base_url}/type'
 

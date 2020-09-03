@@ -63,12 +63,12 @@ func (s *Screen) Render(w io.Writer) (string, error) {
 	dc := gg.NewContext(s.width, s.height)
 	dc.DrawImage(s.bgImage, 0, 0)
 
-	if err := dc.LoadFontFace(s.fontPath, 50); err != nil {
+	if err := dc.LoadFontFace(s.fontPath, 18); err != nil {
 		return "", err
 	}
 
-	textRightMargin := 60.0
-	textTopMargin := 120.0
+	textRightMargin := 10.0
+	textTopMargin := 30.0
 	x := textRightMargin
 	y := textTopMargin
 	maxWidth := float64(dc.Width()) - textRightMargin - textRightMargin
