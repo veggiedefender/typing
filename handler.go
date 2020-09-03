@@ -72,7 +72,7 @@ func RenderHandler(scrn *Screen) http.Handler {
 }
 
 // TypeHandler types a character to the screen
-func TypeHandler(scrn *Screen, camoURL string) http.HandlerFunc {
+func TypeHandler(scrn *Screen, repoURL, camoURL string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ch := mux.Vars(r)["character"]
 
@@ -84,7 +84,7 @@ func TypeHandler(scrn *Screen, camoURL string) http.HandlerFunc {
 		}
 
 		log.Printf("Pressed button: %q", ch)
-		http.Redirect(w, r, "https://github.com/veggiedefender/typing#this-readme-is-interactive", 302)
+		http.Redirect(w, r, repoURL, 302)
 	})
 }
 

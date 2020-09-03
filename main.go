@@ -15,9 +15,11 @@ func main() {
 		imagesPath  = flag.String("static", "./images", "path to images")
 		bgImagePath = flag.String("bg", "./images/main.png", "path to images")
 		fontPath    = flag.String("font", "./Roboto-Regular.ttf", "path to font")
-		camoURL     = flag.String("camoURL", "", "anonymized GitHub camo URL")
+		repoURL     = flag.String("repo", "https://github.com/veggiedefender/typing#this-readme-is-interactive", "URL of repo to redirect to after typing a letter")
+		camoURL     = flag.String("camoURL", "", "URL of github proxied screen image")
 		enableHTTPS = flag.Bool("https", false, "enable HTTPS")
 		certPath    = flag.String("certs", "./cert-cache", "path to letsencrypt autocert cache directory")
+		host        = flag.String("host", "kbd.jse.li", "host to listen TLS on")
 	)
 	flag.Parse()
 
@@ -32,8 +34,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/k/").Handler(http.StripPrefix("/k/", http.FileServer(http.Dir(*imagesPath))))
-
-	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scrn, *camoURL))
+	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scrn, *repoURL, *camoURL))
 	r.Handle("/screen.gif", RenderHandler(scrn))
 
 	srv := &http.Server{
@@ -47,7 +48,7 @@ func main() {
 		m := &autocert.Manager{
 			Cache:      autocert.DirCache(*certPath),
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist("kbd.jse.li"),
+			HostPolicy: autocert.HostWhitelist(*host),
 		}
 		srv.Addr = ":https"
 		srv.TLSConfig = m.TLSConfig()
