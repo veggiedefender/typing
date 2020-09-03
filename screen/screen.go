@@ -5,9 +5,10 @@ import (
 	"encoding/hex"
 	"image"
 	"image/color"
-	"image/png"
+	"image/color/palette"
+	"image/draw"
+	"image/gif"
 	"io"
-	"log"
 	"sync"
 
 	"github.com/fogleman/gg"
@@ -60,11 +61,40 @@ func (s *Screen) Render(w io.Writer) (string, error) {
 	message := string(s.buf)
 	s.bufMux.RUnlock()
 
+	frame1, err := s.renderString(message)
+	if err != nil {
+		return "", err
+	}
+
+	frame2, err := s.renderString(message + "|")
+	if err != nil {
+		return "", err
+	}
+
+	palettedImage1 := image.NewPaletted(frame1.Bounds(), palette.Plan9)
+	draw.FloydSteinberg.Draw(palettedImage1, frame1.Bounds(), frame1, image.ZP)
+	palettedImage2 := image.NewPaletted(frame2.Bounds(), palette.Plan9)
+	draw.FloydSteinberg.Draw(palettedImage2, frame2.Bounds(), frame2, image.ZP)
+	if err != nil {
+		return "", err
+	}
+
+	gif.EncodeAll(w, &gif.GIF{
+		Image: []*image.Paletted{
+			palettedImage1,
+			palettedImage2,
+		},
+		Delay: []int{50, 50},
+	})
+	return etag(message), nil
+}
+
+func (s *Screen) renderString(message string) (image.Image, error) {
 	dc := gg.NewContext(s.width, s.height)
 	dc.DrawImage(s.bgImage, 0, 0)
 
 	if err := dc.LoadFontFace(s.fontPath, 18); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	textRightMargin := 10.0
@@ -75,12 +105,7 @@ func (s *Screen) Render(w io.Writer) (string, error) {
 
 	dc.SetColor(color.Black)
 	dc.DrawStringWrapped(message, x, y, 0, 0, maxWidth, 1.6, gg.AlignLeft)
-
-	// dc.MeasureMultilineString
-
-	png.Encode(w, dc.Image())
-	log.Printf("Rendered: %q", message)
-	return etag(message), nil
+	return dc.Image(), nil
 }
 
 func etag(s string) string {

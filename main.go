@@ -44,7 +44,7 @@ func main() {
 	r.PathPrefix("/k/").Handler(http.StripPrefix("/k/", http.FileServer(http.Dir(*imagesPath))))
 
 	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scr, *camoURL))
-	r.Handle("/screen.png", RenderHandler(scr))
+	r.Handle("/screen.gif", RenderHandler(scr))
 
 	srv := &http.Server{
 		Handler:      r,

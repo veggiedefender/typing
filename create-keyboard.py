@@ -21,7 +21,7 @@ pressable = [
 ]
 
 image_url_override = {
-    'main': f'{base_url}/screen.png'
+    'main': f'{base_url}/screen.gif'
 }
 
 images = Path('./images')

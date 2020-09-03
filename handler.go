@@ -77,7 +77,7 @@ func RenderHandler(scr *screen.Screen) http.Handler {
 		if err != nil {
 			return &appError{Error: err, Message: "error rendering image", Code: 500}
 		}
-		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set("Content-Type", "image/gif")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", etag)
 
