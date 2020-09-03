@@ -90,15 +90,15 @@ func (s *Screen) renderString(message string) (image.Image, error) {
 	dc := gg.NewContext(s.width, s.height)
 	dc.DrawImage(s.bgImage, 0, 0)
 
-	if err := dc.LoadFontFace(s.fontPath, 18); err != nil {
+	if err := dc.LoadFontFace(s.fontPath, 0.055*float64(s.width)); err != nil {
 		return nil, err
 	}
 
-	textRightMargin := 10.0
-	textTopMargin := 30.0
-	x := textRightMargin
-	y := textTopMargin
-	maxWidth := float64(dc.Width()) - textRightMargin - textRightMargin
+	marginHorizontal := 0.05 * float64(s.width)
+	marginVertical := 0.1 * float64(s.height)
+	x := marginHorizontal
+	y := marginVertical
+	maxWidth := float64(s.width) - marginHorizontal - marginHorizontal
 
 	dc.SetColor(color.Black)
 	dc.DrawStringWrapped(message, x, y, 0, 0, maxWidth, 1.6, gg.AlignLeft)
