@@ -1,7 +1,7 @@
 from pathlib import Path
 from PIL import Image
 
-base_url = 'https://booth-athletes-readings-carried.trycloudflare.com/'
+base_url = 'https://kbd.jse.li'
 image_base_url = f'{base_url}/k'
 link_base_url = f'{base_url}/type'
 
@@ -27,7 +27,8 @@ image_url_override = {
 images = Path('./images')
 total_width, _ = Image.open(images / 'combined.png').size
 
-html = '<table><tbody><tr><td>'
+html = '### this readme is interactive\n'
+html += '<table><tbody><tr><td>'
 for row in keyboard:
     total_row = 0
     for key in row:
@@ -38,12 +39,13 @@ for row in keyboard:
             src = image_url_override[key]
         else:
             src = f'{image_base_url}/{key}.png'
-
         img = f'<img src="{src}" width="{percent}%" alt="{key}" align="top">'
+
         if key in pressable:
             html += f'<a href="{link_base_url}/{key}">{img}</a>'
         else:
             html += f'<a href="#">{img}</a>'
+
     html += '<br>'
 
 html += '</td></tr></tbody></table>'

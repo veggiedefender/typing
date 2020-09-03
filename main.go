@@ -6,36 +6,26 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/veggiedefender/typing/screen"
-
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/acme/autocert"
 )
-
-type appHandler func(http.ResponseWriter, *http.Request) *appError
-
-type appError struct {
-	Error   error
-	Message string
-	Code    int
-}
-
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if e := fn(w, r); e != nil {
-		log.Println(e.Error.Error())
-		http.Error(w, e.Message, e.Code)
-	}
-}
 
 func main() {
 	var (
 		imagesPath  = flag.String("static", "./images", "path to images")
 		bgImagePath = flag.String("bg", "./images/main.png", "path to images")
 		fontPath    = flag.String("font", "./Roboto-Regular.ttf", "path to font")
-		camoURL     = flag.String("camoURL", "", "screen image camo URL")
+		camoURL     = flag.String("camoURL", "", "anonymized GitHub camo URL")
+		enableHTTPS = flag.Bool("https", false, "enable HTTPS")
+		certPath    = flag.String("certs", "./cert-cache", "path to letsencrypt autocert cache directory")
 	)
 	flag.Parse()
 
-	scr, err := screen.NewScreen(*bgImagePath, *fontPath)
+	if len(*camoURL) == 0 {
+		log.Fatal("Pass in GitHub camo URL with -camoURL <url>")
+	}
+
+	scrn, err := NewScreen(*bgImagePath, *fontPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,8 +33,8 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/k/").Handler(http.StripPrefix("/k/", http.FileServer(http.Dir(*imagesPath))))
 
-	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scr, *camoURL))
-	r.Handle("/screen.gif", RenderHandler(scr))
+	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scrn, *camoURL))
+	r.Handle("/screen.gif", RenderHandler(scrn))
 
 	srv := &http.Server{
 		Handler:      r,
@@ -53,6 +43,17 @@ func main() {
 		IdleTimeout:  120 * time.Second,
 	}
 
-	srv.Addr = ":8000"
-	log.Fatal(srv.ListenAndServe())
+	if *enableHTTPS {
+		m := &autocert.Manager{
+			Cache:      autocert.DirCache(*certPath),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist("kbd.jse.li"),
+		}
+		srv.Addr = ":https"
+		srv.TLSConfig = m.TLSConfig()
+		log.Fatal(srv.ListenAndServeTLS("", ""))
+	} else {
+		srv.Addr = ":8000"
+		log.Fatal(srv.ListenAndServe())
+	}
 }

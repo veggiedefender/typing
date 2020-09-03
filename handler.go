@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/veggiedefender/typing/screen"
 )
 
 var keymap = map[string]rune{
@@ -54,40 +53,43 @@ var keymap = map[string]rune{
 	"enter":     '\n',
 }
 
-// TypeHandler types a character to the screen
-func TypeHandler(scr *screen.Screen, camoURL string) http.Handler {
-	return appHandler(func(w http.ResponseWriter, r *http.Request) *appError {
-		vars := mux.Vars(r)
-		log.Printf("Pressed button: %q", vars["character"])
-		scr.Add(keymap[vars["character"]])
-		err := purgeCache(r.Context(), camoURL)
-		if err != nil {
-			log.Println(err)
-		}
-		http.Redirect(w, r, "https://github.com/veggiedefender/keyboard", 302)
-		return nil
-	})
-}
-
 // RenderHandler renders the current screen
-func RenderHandler(scr *screen.Screen) http.Handler {
-	return appHandler(func(w http.ResponseWriter, r *http.Request) *appError {
+func RenderHandler(scrn *Screen) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var buf bytes.Buffer
-		etag, err := scr.Render(&buf)
+		etag, err := scrn.Render(&buf)
 		if err != nil {
-			return &appError{Error: err, Message: "error rendering image", Code: 500}
+			http.Error(w, "error rendering screen", 500)
+			return
 		}
+
 		w.Header().Set("Content-Type", "image/gif")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", etag)
 
 		w.Write(buf.Bytes())
-		return nil
 	})
 }
 
-func purgeCache(ctx context.Context, url string) error {
-	req, err := http.NewRequestWithContext(ctx, "PURGE", url, nil)
+// TypeHandler types a character to the screen
+func TypeHandler(scrn *Screen, camoURL string) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ch := mux.Vars(r)["character"]
+
+		scrn.Add(keymap[ch])
+
+		err := purgeGitHubCache(r.Context(), camoURL)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Printf("Pressed button: %q", ch)
+		http.Redirect(w, r, "https://github.com/veggiedefender/typing#this-readme-is-interactive", 302)
+	})
+}
+
+func purgeGitHubCache(ctx context.Context, camoURL string) error {
+	req, err := http.NewRequestWithContext(ctx, "PURGE", camoURL, nil)
 	if err != nil {
 		return err
 	}
