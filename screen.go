@@ -44,6 +44,12 @@ func (s *Screen) Add(ch rune) {
 	s.bufMux.Lock()
 	defer s.bufMux.Unlock()
 
+	// temp hack to clear the screen when long enough
+	if len(s.buf) > 300 {
+		s.buf = []rune{ch}
+		return
+	}
+
 	if ch == '\b' {
 		if len(s.buf) > 0 {
 			s.buf = s.buf[:len(s.buf)-1]
