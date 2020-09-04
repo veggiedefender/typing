@@ -44,9 +44,9 @@ func (s *Screen) Add(ch rune) {
 	s.bufMux.Lock()
 	defer s.bufMux.Unlock()
 
-	// disable return (controversial decision, might revert)
+	// turn enter into space
 	if ch == '\n' {
-		return
+		ch = ' '
 	}
 
 	// temp hack to clear the screen when long enough
