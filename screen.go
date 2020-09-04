@@ -49,11 +49,6 @@ func (s *Screen) Add(ch rune) {
 		ch = ' '
 	}
 
-	// disabling backspace due to abuse
-	if ch == '\b' {
-		return
-	}
-
 	// temp hack to clear the screen when long enough
 	if len(s.buf) > 300 {
 		s.buf = []rune{ch}

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -32,9 +34,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	lmt := tollbooth.NewLimiter(5, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
+	lmt.SetIPLookups([]string{"RemoteAddr"})
+
 	r := mux.NewRouter()
 	r.PathPrefix("/k/").Handler(http.StripPrefix("/k/", http.FileServer(http.Dir(*imagesPath))))
-	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scrn, *repoURL))
+	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", tollbooth.LimitFuncHandler(lmt, TypeHandler(scrn, *repoURL)))
 	r.Handle("/screen.gif", RenderHandler(scrn))
 
 	srv := &http.Server{
