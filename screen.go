@@ -5,9 +5,7 @@ import (
 	"encoding/hex"
 	"image"
 	"image/color"
-	"image/color/palette"
-	"image/draw"
-	"image/gif"
+	"image/png"
 	"io"
 	"sync"
 
@@ -66,23 +64,27 @@ func (s *Screen) Render(w io.Writer) (string, error) {
 		return "", err
 	}
 
-	frame2, err := s.renderString(message + "|")
+	err = png.Encode(w, frame1)
 	if err != nil {
 		return "", err
 	}
+	// frame2, err := s.renderString(message + "|")
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	palettedImage1 := image.NewPaletted(frame1.Bounds(), palette.Plan9)
-	draw.FloydSteinberg.Draw(palettedImage1, frame1.Bounds(), frame1, image.ZP)
-	palettedImage2 := image.NewPaletted(frame2.Bounds(), palette.Plan9)
-	draw.FloydSteinberg.Draw(palettedImage2, frame2.Bounds(), frame2, image.ZP)
+	// palettedImage1 := image.NewPaletted(frame1.Bounds(), palette.Plan9)
+	// draw.FloydSteinberg.Draw(palettedImage1, frame1.Bounds(), frame1, image.ZP)
+	// palettedImage2 := image.NewPaletted(frame2.Bounds(), palette.Plan9)
+	// draw.FloydSteinberg.Draw(palettedImage2, frame2.Bounds(), frame2, image.ZP)
 
-	gif.EncodeAll(w, &gif.GIF{
-		Image: []*image.Paletted{
-			palettedImage1,
-			palettedImage2,
-		},
-		Delay: []int{50, 50},
-	})
+	// gif.EncodeAll(w, &gif.GIF{
+	// 	Image: []*image.Paletted{
+	// 		palettedImage1,
+	// 		palettedImage2,
+	// 	},
+	// 	Delay: []int{50, 50},
+	// })
 	return etag(message), nil
 }
 

@@ -34,7 +34,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/k/").Handler(http.StripPrefix("/k/", http.FileServer(http.Dir(*imagesPath))))
-	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scrn, *repoURL, *camoURL))
+	r.Handle("/type/{character:[a-z0-9]|backspace|comma|space|period|enter}", TypeHandler(scrn, *repoURL))
 	r.Handle("/screen.gif", RenderHandler(scrn))
 
 	srv := &http.Server{
@@ -43,6 +43,8 @@ func main() {
 		WriteTimeout: 20 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
+
+	go purgeGitHubCache(*camoURL)
 
 	if *enableHTTPS {
 		m := &autocert.Manager{

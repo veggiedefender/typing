@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -63,7 +64,7 @@ func RenderHandler(scrn *Screen) http.Handler {
 			return
 		}
 
-		w.Header().Set("Content-Type", "image/gif")
+		w.Header().Set("Content-Type", "image/png")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("ETag", etag)
 
@@ -72,29 +73,31 @@ func RenderHandler(scrn *Screen) http.Handler {
 }
 
 // TypeHandler types a character to the screen
-func TypeHandler(scrn *Screen, repoURL, camoURL string) http.HandlerFunc {
+func TypeHandler(scrn *Screen, repoURL string) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ch := mux.Vars(r)["character"]
-
 		scrn.Add(keymap[ch])
-
-		err := purgeGitHubCache(r.Context(), camoURL)
-		if err != nil {
-			log.Println(err)
-		}
-
 		log.Printf("Pressed button: %q", ch)
 		w.Header().Set("Cache-Control", "no-store")
 		http.Redirect(w, r, repoURL, 302)
 	})
 }
 
-func purgeGitHubCache(ctx context.Context, camoURL string) error {
-	req, err := http.NewRequestWithContext(ctx, "PURGE", camoURL, nil)
-	if err != nil {
-		return err
+func purgeGitHubCache(camoURL string) error {
+	ticker := time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				req, err := http.NewRequestWithContext(ctx, "PURGE", camoURL, nil)
+				if err != nil {
+					return
+				}
+				http.DefaultClient.Do(req)
+			}()
+		}
 	}
 
-	_, err = http.DefaultClient.Do(req)
-	return err
 }
